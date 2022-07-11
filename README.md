@@ -33,6 +33,11 @@
 2) Альтернативные сплайс сайты характерны только для опредленных семейств генов.
 3) Последовательности фланкирующие сплайс сайты не случайны.
 4) Фаза экзона связана с сплайс сайтами.
+5) Whereas U2-type introns have been found in virtually all eukaryotes (1) and comprise the vast majority of the splice sites found in any organism, U12-type introns have only been identified in vertebrates, insects, jellyfish and plants (8).
 
+## References
+
+[Comprehensive splice-site analysis using comparative genomics
+](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1557818/)
 
 
