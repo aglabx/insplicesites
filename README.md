@@ -41,6 +41,4 @@
 ](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1557818/)
 
 ## Статистика
-https://docs.google.com/spreadsheets/d/1WRMZo9Lz_kHDb6NsyeRjyo2zAEBo9w5peZxB169Ref4/edit#gid=1243642974
-
-
+https://docs.google.com/spreadsheets/d/1WRMZo9Lz_kHDb6NsyeRjyo2zAEBo9w5peZxB169Ref4/edit?usp=sharing
