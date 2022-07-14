@@ -2,7 +2,7 @@
 
 ## Теория:
 
-Википедия про сплайсинг: https://en.wikipedia.org/wiki/RNA_splicing 
+Википедия про сплайсинг: https://en.wikipedia.org/wiki/RNA_splicing https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%BB%D0%B0%D0%B9%D1%81%D0%B8%D0%BD%D0%B3
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Intron_miguelferig.jpg/900px-Intron_miguelferig.jpg" />
 
