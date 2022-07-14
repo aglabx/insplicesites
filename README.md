@@ -40,5 +40,15 @@
 [Comprehensive splice-site analysis using comparative genomics
 ](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1557818/)
 
+### Branch point site story
+
+[BPP: a sequence-based algorithm for branch point prediction 
+](https://academic.oup.com/bioinformatics/article/33/20/3166/3870482)
+
+[Human branch point consensus sequence is yUnAy](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2367711/)
+
+[Wobble Splicing Reveals the Role of the Branch Point Sequence-to-NAGNAG Region in 3′ Tandem Splice Site Selection
+](https://journals.asm.org/doi/10.1128/MCB.00363-07)
+
 ## Статистика
 https://docs.google.com/spreadsheets/d/1WRMZo9Lz_kHDb6NsyeRjyo2zAEBo9w5peZxB169Ref4/edit?usp=sharing
