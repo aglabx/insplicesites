@@ -83,6 +83,8 @@ if __name__ == "__main__":
     output_file = args["output"]
     stats_output_file = args["stats"]
     flank = int(args["flanks"])
+    output_file_ss3 = "output_file_ss3.fna"
+    output_file_ss5 = "output_file_ss5.fna"
 
     contig2seq = {}
     for header, seq in sc_iter_fasta_brute(fasta_file):
@@ -136,29 +138,38 @@ if __name__ == "__main__":
             for j in range(1, len(gene2intervals[gene_id])):
                 a = gene2intervals[gene_id][j - 1]
                 b = gene2intervals[gene_id][j]
-                pre_ss3 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
-                ss3 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
-                post_ss3 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
-                pre_ss5 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
-                ss5 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
-                post_ss5 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
-                exon = (gene_id, "+", pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
-                exons.append(exon)
-        else:
-            for j in range(1, len(gene2intervals[gene_id])):
-                a = gene2intervals[gene_id][j - 1]
-                b = gene2intervals[gene_id][j]
                 pre_ss5 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
                 ss5 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
                 post_ss5 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
                 pre_ss3 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
                 ss3 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
                 post_ss3 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
+                exon = (gene_id, "+", pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
+                exons.append(exon)
+        else:
+            for j in range(1, len(gene2intervals[gene_id])):
+                a = gene2intervals[gene_id][j - 1]
+                b = gene2intervals[gene_id][j]
+                pre_ss3 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
+                ss3 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
+                post_ss3 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
+                pre_ss5 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
+                ss5 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
+                post_ss5 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
                 data = (pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
                 exon = [gene_id, "-"] + [x for x in map(get_revcomp, data)]
                 exons.append(tuple(exon))
 
+
     exons = set(exons)
+
+    with open(output_file_ss3, "w") as fw:
+        for exon in exons:
+            fw.write("\n".join([">", "".join([exon[2], exon[3], exon[4]])]))
+
+    with open(output_file_ss5, "w") as fw:
+        for exon in exons:
+            fw.write("\n".join([">", "".join([exon[5], exon[6], exon[7]])]))
 
     with open(output_file, "w") as fw:
         for exon in exons:
