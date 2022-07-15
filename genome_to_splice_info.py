@@ -156,7 +156,7 @@ if __name__ == "__main__":
                 post_ss3 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
                 data = (pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
                 exon = [gene_id, "-"] + [x for x in map(get_revcomp, data)]
-                exons.append(exon)
+                exons.append(tuple(exon))
 
     exons = set(exons)
 
