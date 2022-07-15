@@ -1,36 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#@created: 15.07.2022
-#@author: Aleksey Komissarov and SWW splicing team
-#@contact: ad3002@gmail.com
+# @created: 15.07.2022
+# @author: Aleksey Komissarov and SWW splicing team
+# @contact: ad3002@gmail.com
 
 import argparse
-from collections import defaultdict, Counter
 import gzip
+from collections import defaultdict, Counter
 
-REVCOMP_DICTIONARY = dict(zip('ATCGNatcgn~[]', 'TAGCNtagcn~]['))
+
+REVCOMP_DICTIONARY = dict(zip("ATCGNatcgn~[]", "TAGCNtagcn~]["))
+
 
 def get_revcomp(sequence):
-    '''Return reverse complementary sequence.
+    """Return reverse complementary sequence.
 
     >>> complementary('AT CG')
     'CGAT'
 
-    '''
-    return ''.join(REVCOMP_DICTIONARY.get(nucleotide, '') for nucleotide in reversed(sequence))
+    """
+    return "".join(
+        REVCOMP_DICTIONARY.get(nucleotide, "") for nucleotide in reversed(sequence)
+    )
 
 
 def get_opener(file_name):
     if file_name.endswith("gz"):
-        return gzip.open(file_name, 'rt')
+        return gzip.open(file_name, "rt")
     else:
         return open(file_name)
 
 
 def sc_iter_fasta_brute(file_name, inmem=False, lower=False):
-    """ Iter over fasta file."""
-    
+    """Iter over fasta file."""
+
     header = None
     seq = []
     with get_opener(file_name) as fh:
@@ -55,14 +59,23 @@ def sc_iter_fasta_brute(file_name, inmem=False, lower=False):
                 sequence = sequence.lower()
             yield header, sequence
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Compute ss3 and ss5')
-    parser.add_argument('-o','--output', help='Output file', required=True, default=None)
-    parser.add_argument('-s','--stats', help='Stats file', required=True, default=None)
-    parser.add_argument('-i','--fasta', help='Input fasta file', required=True, default=None)
-    parser.add_argument('-g','--gff', help='Input gff file', required=True, default=None)
-    parser.add_argument('-f','--flanks', help='Flank length', required=False, default=100)
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Compute ss3 and ss5")
+    parser.add_argument(
+        "-o", "--output", help="Output file", required=True, default=None
+    )
+    parser.add_argument("-s", "--stats", help="Stats file", required=True, default=None)
+    parser.add_argument(
+        "-i", "--fasta", help="Input fasta file", required=True, default=None
+    )
+    parser.add_argument(
+        "-g", "--gff", help="Input gff file", required=True, default=None
+    )
+    parser.add_argument(
+        "-f", "--flanks", help="Flank length", required=False, default=100
+    )
     args = vars(parser.parse_args())
 
     fasta_file = args["fasta"]
@@ -89,7 +102,9 @@ if __name__ == '__main__':
             d[4] = int(d[4])
             features = dict([x.split("=") for x in d[-1].split(";")])
             if "Dbxref" in features:
-                features["Dbxref"] = dict([x.split(":")[:2] for x in features["Dbxref"].split(",")])
+                features["Dbxref"] = dict(
+                    [x.split(":")[:2] for x in features["Dbxref"].split(",")]
+                )
             d[-1] = features
             if d[2] == "gene":
                 if features["gene_biotype"] != "protein_coding":
@@ -119,26 +134,26 @@ if __name__ == '__main__':
             continue
         if gene2intervals[gene_id][0][-1] == "+":
             for j in range(1, len(gene2intervals[gene_id])):
-                a = gene2intervals[gene_id][j-1]
+                a = gene2intervals[gene_id][j - 1]
                 b = gene2intervals[gene_id][j]
-                pre_ss3 = contig2seq[a[0]][a[2]-flank:a[2]].upper()
-                ss3 = contig2seq[a[0]][a[2]:a[2]+2].upper()
-                post_ss3 = contig2seq[a[0]][a[2]+2:a[2]+2+flank].upper()
-                pre_ss5 = contig2seq[b[0]][b[1]-3-flank:b[1]-3].upper()
-                ss5 = contig2seq[b[0]][b[1]-3:b[1]-3+2].upper()
-                post_ss5 = contig2seq[b[0]][b[1]-3+2:b[1]-3+2+flank].upper()
+                pre_ss3 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
+                ss3 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
+                post_ss3 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
+                pre_ss5 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
+                ss5 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
+                post_ss5 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
                 exon = (gene_id, "+", pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
                 exons.append(exon)
         else:
             for j in range(1, len(gene2intervals[gene_id])):
-                a = gene2intervals[gene_id][j-1]
+                a = gene2intervals[gene_id][j - 1]
                 b = gene2intervals[gene_id][j]
-                pre_ss5 = contig2seq[a[0]][a[2]-flank:a[2]].upper()
-                ss5 = contig2seq[a[0]][a[2]:a[2]+2].upper()
-                post_ss5 = contig2seq[a[0]][a[2]+2:a[2]+2+flank].upper()
-                pre_ss3 = contig2seq[b[0]][b[1]-3-flank:b[1]-3].upper()
-                ss3 = contig2seq[b[0]][b[1]-3:b[1]-3+2].upper()
-                post_ss3 = contig2seq[b[0]][b[1]-3+2:b[1]-3+2+flank].upper()
+                pre_ss5 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
+                ss5 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
+                post_ss5 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
+                pre_ss3 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
+                ss3 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
+                post_ss3 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
                 data = (pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
                 exon = [gene_id, "-"] + [x for x in map(get_revcomp, data)]
                 exons.append(exon)
@@ -150,7 +165,7 @@ if __name__ == '__main__':
             fw.write("%s\n" % "\t".join(exon))
 
     with open(stats_output_file, "w") as fw:
-        for k,v in Counter([x[6] for x in exons]).most_common(10):
+        for k, v in Counter([x[6] for x in exons]).most_common(10):
             fw.write(f"ss5\t{k}\t{round(100.*v/len(exons),2)}\n")
-        for k,v in Counter([x[3] for x in exons]).most_common(10):
+        for k, v in Counter([x[3] for x in exons]).most_common(10):
             fw.write(f"ss3\t{k}\t{round(100.*v/len(exons),2)}\n")
