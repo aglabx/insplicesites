@@ -5,20 +5,23 @@
 # @author: Aleksey Komissarov and SWW splicing team
 # @contact: ad3002@gmail.com
 
+import matplotlib.axis
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import argparse
 import gzip
 from collections import defaultdict, Counter
-
+import logomaker
+import os.path
 
 REVCOMP_DICTIONARY = dict(zip("ATCGNatcgn~[]", "TAGCNtagcn~]["))
 
 
 def get_revcomp(sequence):
     """Return reverse complementary sequence.
-
     >>> complementary('AT CG')
     'CGAT'
-
     """
     return "".join(
         REVCOMP_DICTIONARY.get(nucleotide, "") for nucleotide in reversed(sequence)
@@ -83,6 +86,11 @@ if __name__ == "__main__":
     output_file = args["output"]
     stats_output_file = args["stats"]
     flank = int(args["flanks"])
+    output_file_ss3 = "output_file_ss3.fna"
+    output_file_ss5 = "output_file_ss5.fna"
+    logo_output_file3 = "logo3.png"
+    logo_output_file5 = "logo5.png"
+    output_logo = os.path.splitext(fasta_file)[0] + '_logo'
 
     contig2seq = {}
     for header, seq in sc_iter_fasta_brute(fasta_file):
@@ -136,29 +144,37 @@ if __name__ == "__main__":
             for j in range(1, len(gene2intervals[gene_id])):
                 a = gene2intervals[gene_id][j - 1]
                 b = gene2intervals[gene_id][j]
-                pre_ss3 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
-                ss3 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
-                post_ss3 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
-                pre_ss5 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
-                ss5 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
-                post_ss5 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
-                exon = (gene_id, "+", pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
-                exons.append(exon)
-        else:
-            for j in range(1, len(gene2intervals[gene_id])):
-                a = gene2intervals[gene_id][j - 1]
-                b = gene2intervals[gene_id][j]
                 pre_ss5 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
                 ss5 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
                 post_ss5 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
                 pre_ss3 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
                 ss3 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
                 post_ss3 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
+                exon = (gene_id, "+", pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
+                exons.append(exon)
+        else:
+            for j in range(1, len(gene2intervals[gene_id])):
+                a = gene2intervals[gene_id][j - 1]
+                b = gene2intervals[gene_id][j]
+                post_ss3 = contig2seq[a[0]][a[2] - flank : a[2]].upper()
+                ss3 = contig2seq[a[0]][a[2] : a[2] + 2].upper()
+                pre_ss3 = contig2seq[a[0]][a[2] + 2 : a[2] + 2 + flank].upper()
+                post_ss5 = contig2seq[b[0]][b[1] - 3 - flank : b[1] - 3].upper()
+                ss5 = contig2seq[b[0]][b[1] - 3 : b[1] - 3 + 2].upper()
+                pre_ss5 = contig2seq[b[0]][b[1] - 3 + 2 : b[1] - 3 + 2 + flank].upper()
                 data = (pre_ss3, ss3, post_ss3, pre_ss5, ss5, post_ss5)
                 exon = [gene_id, "-"] + [x for x in map(get_revcomp, data)]
                 exons.append(tuple(exon))
-
     exons = set(exons)
+
+    with open(output_file_ss3, "w") as fw:
+        for exon in exons:
+            fw.write("".join([">", "\n", "".join([exon[2], exon[3], exon[4]]), "\n"]))
+    fw.close()
+
+    with open(output_file_ss5, "w") as fw:
+        for exon in exons:
+            fw.write("".join([">\n", "".join([exon[5], exon[6], exon[7], "\n"])]))
 
     with open(output_file, "w") as fw:
         for exon in exons:
@@ -169,3 +185,31 @@ if __name__ == "__main__":
             fw.write(f"ss5\t{k}\t{round(100.*v/len(exons),2)}\n")
         for k, v in Counter([x[3] for x in exons]).most_common(10):
             fw.write(f"ss3\t{k}\t{round(100.*v/len(exons),2)}\n")
+
+    with open(output_file_ss3, 'r') as f:
+        raw_seqs = f.readlines()
+    seqs = [seq.strip() for seq in raw_seqs if ('#' not in seq) and ('>') not in seq]
+    counts_mat = logomaker.alignment_to_matrix(seqs)
+    logo = logomaker.Logo(counts_mat)
+    logo.style_spines(visible=False)
+    logo.style_spines(spines=['left', 'bottom'], visible=True)
+    logo.style_xticks(rotation=90, fmt='%d', anchor=0)
+    logo.ax.xaxis.set_ticks_position('none')
+    logo.ax.xaxis.set_tick_params(pad=-1)
+    logo.ax.set_xticks(range(len(counts_mat)))
+    logo.ax.set_xticklabels('%+d' % x for x in range(-flank, flank + 2))
+    plt.savefig('{}3.png'.format(output_logo))
+
+    with open(output_file_ss5, 'r') as f:
+        raw_seqs = f.readlines()
+    seqs = [seq.strip() for seq in raw_seqs if ('#' not in seq) and ('>') not in seq]
+    counts_mat = logomaker.alignment_to_matrix(seqs)
+    logo = logomaker.Logo(counts_mat)
+    logo.style_spines(visible=False)
+    logo.style_spines(spines=['left', 'bottom'], visible=True)
+    logo.style_xticks(rotation=90, fmt='%d', anchor=0)
+    logo.ax.xaxis.set_ticks_position('none')
+    logo.ax.xaxis.set_tick_params(pad=-1)
+    logo.ax.set_xticks(range(len(counts_mat)))
+    logo.ax.set_xticklabels('%+d' % x for x in range(-flank - 1, flank + 1))
+    plt.savefig('{}5.png'.format(output_logo))
